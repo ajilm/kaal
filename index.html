@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1a1a2e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Rahu Kaal, Yamagandam & Gulika Kaal timings with notifications" />
+  <link rel="icon" type="image/png" href="/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <title>Kaal Panchang</title>
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-top">
+        <h1 class="app-title">Kaal Panchang</h1>
+        <div class="header-actions">
+          <button id="theme-toggle" class="icon-btn" aria-label="Toggle theme">
+            <span class="theme-icon">☀️</span>
+          </button>
+        </div>
+      </div>
+      <div class="header-meta">
+        <span id="current-date" class="date-text"></span>
+        <button id="location-btn" class="location-chip">
+          <span class="location-icon">📍</span>
+          <span id="location-name">Loading...</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="main-content">
+      <!-- Today View -->
+      <section id="view-today" class="view active">
+        <!-- Date Navigation -->
+        <div class="date-nav">
+          <button id="date-prev" class="date-nav-btn" aria-label="Previous day">&lt;</button>
+          <button id="date-display" class="date-nav-display">
+            <span id="date-display-text">Today</span>
+          </button>
+          <button id="date-next" class="date-nav-btn" aria-label="Next day">&gt;</button>
+        </div>
+        <input type="date" id="date-picker" class="date-picker-input" />
+
+        <div class="sun-times">
+          <div class="sun-item">
+            <span class="sun-label">Sunrise</span>
+            <span id="sunrise-time" class="sun-value">--:--</span>
+          </div>
+          <div class="sun-item">
+            <span class="sun-label">Sunset</span>
+            <span id="sunset-time" class="sun-value">--:--</span>
+          </div>
+        </div>
+
+        <div id="countdown-section" class="countdown-section">
+          <div class="countdown-label" id="countdown-label">Next Kaal</div>
+          <div class="countdown-timer" id="countdown-timer">--:--:--</div>
+        </div>
+
+        <div id="kaal-cards" class="kaal-cards">
+          <!-- Cards injected by JS -->
+        </div>
+      </section>
+
+      <!-- Week View -->
+      <section id="view-week" class="view">
+        <div id="week-table-container" class="week-table-container">
+          <!-- Table injected by JS -->
+        </div>
+      </section>
+
+      <!-- Settings View -->
+      <section id="view-settings" class="view">
+        <div class="settings-group">
+          <h2 class="settings-title">Location</h2>
+          <div class="search-box">
+            <input type="text" id="city-search" placeholder="Search city..." class="search-input" autocomplete="off" />
+            <div id="search-results" class="search-results hidden"></div>
+          </div>
+          <button id="gps-btn" class="settings-btn">
+            <span>📍</span> Use Current Location
+          </button>
+        </div>
+
+        <div class="settings-group">
+          <h2 class="settings-title">Alarms & Notifications</h2>
+          <div class="settings-row">
+            <label>Alert before Kaal</label>
+            <select id="alert-minutes" class="settings-select">
+              <option value="5">5 min</option>
+              <option value="10" selected>10 min</option>
+              <option value="15">15 min</option>
+              <option value="30">30 min</option>
+              <option value="60">1 hour</option>
+            </select>
+          </div>
+          <div class="settings-row">
+            <label>Schedule ahead</label>
+            <select id="schedule-days" class="settings-select">
+              <option value="1">Today only</option>
+              <option value="3">3 days</option>
+              <option value="7" selected>7 days</option>
+            </select>
+          </div>
+          <div class="settings-row">
+            <label>Alarm sound</label>
+            <input type="checkbox" id="alarm-sound" class="toggle" />
+          </div>
+          <div class="settings-divider"></div>
+          <div class="settings-row">
+            <label>Rahu Kaal</label>
+            <input type="checkbox" id="notify-rahu" checked class="toggle" />
+          </div>
+          <div class="settings-row">
+            <label>Yamagandam</label>
+            <input type="checkbox" id="notify-yama" checked class="toggle" />
+          </div>
+          <div class="settings-row">
+            <label>Gulika Kaal</label>
+            <input type="checkbox" id="notify-gulika" checked class="toggle" />
+          </div>
+          <button id="save-notifications" class="settings-btn primary">Save & Schedule Alarms</button>
+          <button id="cancel-alarms" class="settings-btn">Cancel All Alarms</button>
+        </div>
+
+        <div class="settings-group">
+          <h2 class="settings-title">Upcoming Alarms</h2>
+          <div id="alarm-list" class="alarm-list">
+            <p class="about-text">No alarms scheduled.</p>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h2 class="settings-title">About</h2>
+          <p class="about-text">Kaal Panchang v1.0.0</p>
+          <p class="about-text">Accurate Rahu Kaal, Yamagandam & Gulika Kaal timings based on your location.</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-view="today">
+        <span class="nav-icon">🕐</span>
+        <span class="nav-label">Today</span>
+      </button>
+      <button class="nav-item" data-view="week">
+        <span class="nav-icon">📅</span>
+        <span class="nav-label">Week</span>
+      </button>
+      <button class="nav-item" data-view="settings">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">Settings</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Location Permission Modal -->
+  <div id="location-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <h3>Location Access</h3>
+      <p>Allow location access for accurate kaal timings based on your city's sunrise/sunset.</p>
+      <div class="modal-actions">
+        <button id="modal-deny" class="modal-btn">Use Default</button>
+        <button id="modal-allow" class="modal-btn primary">Allow</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

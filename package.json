@@ -1,0 +1,32 @@
+{
+  "name": "kaal-panchang",
+  "version": "1.0.0",
+  "description": "Rahu Kaal, Yamagandam & Gulika Kaal timings with notifications",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "cap:sync": "cap sync",
+    "cap:android": "cap open android",
+    "cap:ios": "cap open ios"
+  },
+  "keywords": [
+    "rahu-kaal",
+    "panchang",
+    "yamagandam",
+    "gulika"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^8.1.0",
+    "@capacitor/cli": "^8.1.0",
+    "@capacitor/core": "^8.1.0",
+    "@capacitor/geolocation": "^8.1.0",
+    "@capacitor/ios": "^8.1.0",
+    "@capacitor/local-notifications": "^8.0.1",
+    "suncalc": "^1.9.0",
+    "vite": "^7.3.1",
+    "vite-plugin-pwa": "^1.2.0"
+  }
+}

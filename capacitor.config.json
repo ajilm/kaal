@@ -1,0 +1,17 @@
+{
+  "appId": "com.kaalpanchang.app",
+  "appName": "Kaal Panchang",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon",
+      "iconColor": "#e94560"
+    },
+    "Geolocation": {
+      "permissions": ["location"]
+    }
+  }
+}

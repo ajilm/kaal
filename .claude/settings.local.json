@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.drikpanchang.com)",
+      "WebFetch(domain:github.com)",
+      "WebSearch",
+      "WebFetch(domain:capacitorjs.com)",
+      "WebFetch(domain:shubhpanchang.com)",
+      "WebFetch(domain:www.astroccult.net)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:gml.noaa.gov)",
+      "WebFetch(domain:edwilliams.org)",
+      "WebFetch(domain:www.anytimeastro.com)",
+      "WebFetch(domain:www.astroica.com)",
+      "WebFetch(domain:nominatim.org)",
+      "WebFetch(domain:vite-pwa-org.netlify.app)",
+      "WebFetch(domain:agasthiar.org)",
+      "Bash(dir:*)",
+      "Bash(npm install:*)",
+      "Bash(\"C:/xampp/htdocs/kaal/scripts/generate-icons.js\" << 'SCRIPT_EOF'\n/**\n * generate-icons.js\n *\n * Generates valid PNG icon files for the Kaal PWA using ONLY built-in\n * Node.js modules \\(fs, zlib\\). No external dependencies required.\n *\n * Produces a dark background \\(#1a1a2e\\) with accent color \\(#e94560\\)\n * circle and a \"K\" letter in the center.\n *\n * Output:\n *   public/icons/icon-192.png  \\(192x192\\)\n *   public/icons/icon-512.png  \\(512x512\\)\n *\n * Usage:\n *   node scripts/generate-icons.js\n */\n\nconst fs = require\\('fs'\\);\nconst path = require\\('path'\\);\nconst zlib = require\\('zlib'\\);\n\n// ---------- colour palette ----------\nconst BG     = { r: 0x1a, g: 0x1a, b: 0x2e };\nconst ACCENT = { r: 0xe9, g: 0x45, b: 0x60 };\n\n// ---------- helpers ----------\n\n/** CRC-32 lookup table \\(used by PNG\\) */\nconst crcTable = \\(\\(\\) => {\n  const table = new Uint32Array\\(256\\);\n  for \\(let n = 0; n < 256; n++\\) {\n    let c = n;\n    for \\(let k = 0; k < 8; k++\\) {\n      c = \\(c & 1\\) ? \\(0xedb88320 ^ \\(c >>> 1\\)\\) : \\(c >>> 1\\);\n    }\n    table[n] = c;\n  }\n  return table;\n}\\)\\(\\);\n\nfunction crc32\\(buf\\) {\n  let crc = 0xffffffff;\n  for \\(let i = 0; i < buf.length; i++\\) {\n    crc = crcTable[\\(crc ^ buf[i]\\) & 0xff] ^ \\(crc >>> 8\\);\n  }\n  return \\(crc ^ 0xffffffff\\) >>> 0;\n}\n\n/** Build a single PNG chunk */\nfunction pngChunk\\(type, data\\) {\n  const typeBytes = Buffer.from\\(type, 'ascii'\\);\n  const dataBytes = data instanceof Buffer ? data : Buffer.from\\(data\\);\n  const lenBuf = Buffer.alloc\\(4\\);\n  lenBuf.writeUInt32BE\\(dataBytes.length, 0\\);\n\n  const crcInput = Buffer.concat\\([typeBytes, dataBytes]\\);\n  const crcBuf = Buffer.alloc\\(4\\);\n  crcBuf.writeUInt32BE\\(crc32\\(crcInput\\), 0\\);\n\n  return Buffer.concat\\([lenBuf, typeBytes, dataBytes, crcBuf]\\);\n}\n\n/** Linear interpolation between two colours */\nfunction lerpColor\\(a, b, t\\) {\n  return {\n    r: Math.round\\(a.r + \\(b.r - a.r\\) * t\\),\n    g: Math.round\\(a.g + \\(b.g - a.g\\) * t\\),\n    b: Math.round\\(a.b + \\(b.b - a.b\\) * t\\),\n  };\n}\n\n/**\n * Bitmap font for \"K\" on a 7x9 grid.\n */\nconst LETTER_K = [\n  '1000011',\n  '1000110',\n  '1001100',\n  '1011000',\n  '1110000',\n  '1011000',\n  '1001100',\n  '1000110',\n  '1000011',\n];\n\nfunction isInsideLetter\\(x, y, cx, cy, size\\) {\n  const cols = LETTER_K[0].length;\n  const rows = LETTER_K.length;\n  const cellW = size / cols;\n  const cellH = size / rows;\n  const startX = cx - size / 2;\n  const startY = cy - size / 2;\n\n  const col = Math.floor\\(\\(x - startX\\) / cellW\\);\n  const row = Math.floor\\(\\(y - startY\\) / cellH\\);\n\n  if \\(col < 0 || col >= cols || row < 0 || row >= rows\\) return false;\n  return LETTER_K[row][col] === '1';\n}\n\n// ---------- pixel rendering ----------\n\nfunction renderIcon\\(dim\\) {\n  const rawRows = [];\n  const cx = dim / 2;\n  const cy = dim / 2;\n  const outerR = dim * 0.44;\n  const innerR = dim * 0.38;\n  const letterSize = dim * 0.36;\n  const edgeSmooth = dim * 0.02;\n\n  for \\(let y = 0; y < dim; y++\\) {\n    const row = Buffer.alloc\\(1 + dim * 3\\);\n    row[0] = 0; // filter: None\n    for \\(let x = 0; x < dim; x++\\) {\n      const dx = x - cx;\n      const dy = y - cy;\n      const dist = Math.sqrt\\(dx * dx + dy * dy\\);\n\n      let color;\n\n      if \\(dist > outerR + edgeSmooth\\) {\n        color = BG;\n      } else {\n        const gradT = Math.min\\(dist / outerR, 1\\);\n        const baseCircle = lerpColor\\(\n          { r: 0x2a, g: 0x1a, b: 0x3e },\n          BG,\n          gradT\n        \\);\n\n        let circleAlpha = 1;\n        if \\(dist > innerR\\) {\n          circleAlpha = 1 - Math.min\\(\\(dist - innerR\\) / \\(outerR - innerR + edgeSmooth\\), 1\\);\n        }\n\n        if \\(isInsideLetter\\(x, y, cx, cy, letterSize\\)\\) {\n          color = lerpColor\\(BG, ACCENT, circleAlpha\\);\n        } else {\n          color = lerpColor\\(BG, baseCircle, circleAlpha\\);\n        }\n\n        // Subtle ring on circle edge\n        const ringDist = Math.abs\\(dist - outerR * 0.92\\);\n        if \\(ringDist < edgeSmooth * 1.5\\) {\n          const ringT = 1 - ringDist / \\(edgeSmooth * 1.5\\);\n          color = lerpColor\\(color, ACCENT, ringT * 0.45\\);\n        }\n      }\n\n      const off = 1 + x * 3;\n      row[off]     = color.r;\n      row[off + 1] = color.g;\n      row[off + 2] = color.b;\n    }\n    rawRows.push\\(row\\);\n  }\n\n  return Buffer.concat\\(rawRows\\);\n}\n\nfunction buildPNG\\(dim\\) {\n  const raw = renderIcon\\(dim\\);\n  const compressed = zlib.deflateSync\\(raw, { level: 9 }\\);\n\n  const signature = Buffer.from\\([137, 80, 78, 71, 13, 10, 26, 10]\\);\n\n  // IHDR\n  const ihdr = Buffer.alloc\\(13\\);\n  ihdr.writeUInt32BE\\(dim, 0\\);\n  ihdr.writeUInt32BE\\(dim, 4\\);\n  ihdr[8]  = 8;   // bit depth\n  ihdr[9]  = 2;   // color type: RGB\n  ihdr[10] = 0;   // compression\n  ihdr[11] = 0;   // filter\n  ihdr[12] = 0;   // interlace\n\n  const ihdrChunk = pngChunk\\('IHDR', ihdr\\);\n  const idatChunk = pngChunk\\('IDAT', compressed\\);\n  const iendChunk = pngChunk\\('IEND', Buffer.alloc\\(0\\)\\);\n\n  return Buffer.concat\\([signature, ihdrChunk, idatChunk, iendChunk]\\);\n}\n\n// ---------- main ----------\n\nconst outDir = path.resolve\\(__dirname, '..', 'public', 'icons'\\);\nfs.mkdirSync\\(outDir, { recursive: true }\\);\n\nconst sizes = [192, 512];\n\nfor \\(const dim of sizes\\) {\n  const pngBuf = buildPNG\\(dim\\);\n  const outPath = path.join\\(outDir, `icon-${dim}.png`\\);\n  fs.writeFileSync\\(outPath, pngBuf\\);\n  const kb = \\(pngBuf.length / 1024\\).toFixed\\(1\\);\n  console.log\\(`  Created ${outPath}  \\(${dim}x${dim}, ${kb} KB\\)`\\);\n}\n\nconsole.log\\('\\\\nDone! Icons generated successfully.'\\);\nSCRIPT_EOF)",
+      "Bash(node:*)",
+      "Bash(npx vite build)",
+      "Bash(npx cap:*)",
+      "Bash(ls:*)",
+      "Bash(npx vite:*)",
+      "Bash(curl:*)",
+      "Bash(npx --yes puppeteer --version)",
+      "mcp__ide__getDiagnostics",
+      "Bash(npm run build:*)",
+      "Bash(adb devices:*)",
+      "Bash(ls d:/laragon/www | head -40)",
+      "Read(//d/laragon/www/**)"
+    ],
+    "additionalDirectories": [
+      "d:\\laragon\\www\\kaal-panchang-wp\\templates",
+      "d:\\laragon\\www\\kaal-panchang-wp\\assets\\css",
+      "d:\\laragon\\www\\kaal-panchang-wp\\assets\\js",
+      "d:\\laragon\\www\\kaal-panchang-wp\\includes",
+      "d:\\laragon\\www\\kaal-panchang-wp\\blocks\\kaal-panchang",
+      "d:\\laragon\\www\\kaal-panchang-wp"
+    ]
+  }
+}
