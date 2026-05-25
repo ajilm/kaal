@@ -12,7 +12,7 @@
     "cap:ios": "cap open ios"
   },
   "engines": {
-    "node": "20.x"
+    "node": ">=22.0.0"
   },
   "keywords": [
     "rahu-kaal",
